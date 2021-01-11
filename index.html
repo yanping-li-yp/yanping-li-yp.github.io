@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>Title</title>
+		<script src="vue.js"></script>
+		<script src="axios.js"></script>
+		<link rel="stylesheet" href="./css/bootstrap.css" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+	</head>
+	<body style="background-color: #F1F1F1;">
+		<div id="app">
+			
+			<div class="container">
+				
+				
+				<!-- 巨幕
+				<div class="jumbotron">
+					<h1>Hello, world!</h1>
+					<p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a></p>
+				</div> -->
+			
+			<!-- 头部导航栏 -->
+			<nav class="navbar navbar-default">
+			    <div class="container-fluid">
+			        <!-- Brand and toggle get grouped for better mobile display -->
+			        <div class="navbar-header">
+			            <a class="navbar-brand" href="#">启迪数字学院</a>
+			        </div>
+					<!-- Collect the nav links, forms, and other content for toggling -->
+						<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+							<ul class="nav navbar-nav">
+								<li @click="qihuanfun(true)"><a href="#">天气预报 <span class="sr-only">(current)</span></a></li>
+								<li @click="qihuanfun(false)"><a href="#">菜谱</a></li>
+							</ul>
+						</div><!-- /.navbar-collapse -->
+			    </div><!-- /.container-fluid -->
+			</nav>
+			
+			<!-- 天气 -->
+			<div v-if="hidden">
+				
+				<!-- 查询输入框以及查询按钮 -->
+				<div class="form-group">
+				    <label for="cityname">请输入你要查询的城市：</label>
+				    <input type="text" class="form-control" v-model="city" id="cityname" placeholder="柳州" />
+				</div>			
+				<button type="submit" @click="getWeather" class="btn btn-primary">查询</button>
+				<!-- 天气查询结果输出 -->
+				<table class="table table-striped">
+					<thead>
+						<tr>
+						  <th scope="col">日期</th>
+						  <th scope="col">天气</th>
+						  <th scope="col">风向</th>
+						  <th scope="col">风力</th>
+						  <th scope="col">最高温度</th>
+						  <th scope="col">最低温度</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="(item,index) in list">
+						  <th scope="row">{{ item.date }}</th>
+						  <td>{{ item.day.weather }}</td>
+						  <td>{{ item.day.winddirect }}</td>
+						  <td>{{ item.day.windpower }}</td>
+						  <td>{{ item.day.temphigh + '°C' }}</td>
+						  <td>{{ item.night.templow + '°C' }}</td>
+						</tr>			    
+					</tbody>
+				</table>
+				
+			</div>
+			
+			<!-- <菜谱 -->
+			<div v-if="!hidden">
+				
+				<!-- 查询输入框 -->
+				<div class="form-group">
+					<label for="keyword">请输入关键词：</label>
+					<input type="text" class="form-control" v-model="keyword" id="keyword" />
+				</div>
+				<div class="form-group">
+				    <label for="num">请输入要查询的数量：</label>
+				    <input type="text" class="form-control" v-model="num" id="num" placeholder="0" />
+				</div>
+				<button type="submit" @click="getcaipu()" class="btn btn-primary">查询</button>
+				
+				
+				
+				<div class="result" v-for="(item,index) in list2" style="margin: 10px;">
+					<div class="media" style="background-color:#fffcfc ;">
+						<div class="media-left">
+							<a href="#">
+								<img class="media-object" :src="item.pic" alt="...">
+							</a>
+						</div>
+						<div class="media-body">
+							<h4 class="media-heading" style="margin: 10px;">{{ item.name }}</h4>
+							{{ item.content }}
+						</div>
+					</div>
+					
+					<!-- 材料 -->
+					 <table class="table" style="margin-top:15px;">
+				        <tr>
+				            <td v-for="(items,indexs) in item.material">
+				                {{ items.mname }} <br> {{ items.amount }}
+				            </td>
+				        </tr>
+				    </table>
+					
+					<!-- 步骤 -->
+					<div class="row">
+					  <div class="col-sm-6 col-md-4" v-for="(items,indexs) in item.process">
+					    <div class="thumbnail" style="height: 240px; overflow: hidden;">
+					      <img :src="items.pic" style="height: 150px;width: 200px;" alt="...">
+					      <div class="caption">
+					        <p style="height: 60px;overflow-y: scroll;">{{ items.pcontent}}</p>
+					      </div>
+					    </div>
+					  </div>
+					</div>
+					
+				</div>    <!--result -->
+				
+			</div>
+			
+			</div>		
+		</div>
+	</body>
+</html>
+<script>
+	
+	// 接口:/getweather,
+	// type:get,
+	// 参数:city=城市名称,
+	// http://localhost:3000/getweather?city=柳州
+	
+	new Vue({
+		el:'#app',
+		data:{
+			city:'柳州',
+			list:null,
+			hidden:true,
+			
+			keyword:'柳州',
+			num:0,
+			list2:[]
+		},
+		methods:{
+			getWeather:function(){
+				let _this = this;
+				axios.get('http://localhost:3000/getweather?city=' + this.city).then(function(response){
+					console.log(response.data.result.daily);
+					_this.list = response.data.result.daily
+				})
+			},
+			getcaipu:function(){
+				let _this = this;
+				console.log(this.num)
+				console.log(this.keyword)
+				axios.get('http://localhost:3000/getcaipu?keyword='+this.keyword +'&num=' + this.num).then(function(response){
+					console.log(response.data.result.list);
+					_this.list2 = response.data.result.list
+				})
+			},
+			qihuanfun:function(bool){
+			    this.hidden = bool;
+			},	
+		},
+		beforeMount:function(){
+			this.getWeather();
+			this.getcaipu();
+		}
+	})
+	
+</script>
